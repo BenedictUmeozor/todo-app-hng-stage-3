@@ -1,21 +1,22 @@
+import { api } from "@/convex/_generated/api";
 import { useThemeController } from "@/hooks/theme-context";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery } from "convex/react";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type ThemeMode = "light" | "dark";
-type Todo = { id: string; text: string; completed: boolean };
 
 export default function HomeScreen() {
   const scheme = (useColorScheme() ?? "light") as ThemeMode;
@@ -46,31 +47,43 @@ export default function HomeScreen() {
         x: "#9495A5",
       };
 
-  const [todos, setTodos] = React.useState<Todo[]>([]);
+  // Convex hooks
+  const todos = useQuery(api.todos.get) ?? [];
+  const addTodoMutation = useMutation(api.todos.add);
+  const toggleTodoMutation = useMutation(api.todos.toggle);
+  const deleteTodoMutation = useMutation(api.todos.remove);
+  const clearCompletedMutation = useMutation(api.todos.clearCompleted);
 
   const [text, setText] = React.useState("");
   const [filter, setFilter] = React.useState<"all" | "active" | "completed">(
     "all"
   );
 
-  const addTodo = () => {
+  const addTodo = async () => {
     const value = text.trim();
     if (!value) return;
-    setTodos(prev => [
-      { id: String(Date.now()), text: value, completed: false },
-      ...prev,
-    ]);
-    setText("");
+    try {
+      await addTodoMutation({ text: value });
+      setText("");
+    } catch (error) {
+      console.error("Failed to add todo:", error);
+    }
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos(prev =>
-      prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+  const toggleTodo = async (id: string) => {
+    try {
+      await toggleTodoMutation({ id: id as any });
+    } catch (error) {
+      console.error("Failed to toggle todo:", error);
+    }
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos(prev => prev.filter(t => t.id !== id));
+  const deleteTodo = async (id: string) => {
+    try {
+      await deleteTodoMutation({ id: id as any });
+    } catch (error) {
+      console.error("Failed to delete todo:", error);
+    }
   };
 
   const itemsLeft = todos.filter(t => !t.completed).length;
@@ -86,7 +99,13 @@ export default function HomeScreen() {
     }
   }, [filter, todos]);
 
-  const clearCompleted = () => setTodos(prev => prev.filter(t => !t.completed));
+  const clearCompleted = async () => {
+    try {
+      await clearCompletedMutation({});
+    } catch (error) {
+      console.error("Failed to clear completed todos:", error);
+    }
+  };
 
   return (
     <View
@@ -150,14 +169,14 @@ export default function HomeScreen() {
               isDark && styles.shadowDark,
             ]}>
             {filteredTodos.map((t, idx) => (
-              <View key={t.id}>
+              <View key={t._id}>
                 <Row
-                  id={t.id}
+                  id={t._id}
                   text={t.text}
                   completed={t.completed}
                   colors={colors}
-                  onToggle={() => toggleTodo(t.id)}
-                  onDelete={() => deleteTodo(t.id)}
+                  onToggle={() => toggleTodo(t._id)}
+                  onDelete={() => deleteTodo(t._id)}
                 />
                 {idx < filteredTodos.length - 1 ? (
                   <Separator color={colors.sep} />
