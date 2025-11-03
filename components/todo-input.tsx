@@ -1,5 +1,5 @@
 import { ActivityIndicator, Platform, StyleSheet, TextInput, View } from "react-native";
-import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 type TodoInputProps = {
   value: string;
@@ -14,7 +14,7 @@ export function TodoInput({ value, onChangeText, onSubmit, colors, isDark, isAdd
   return (
     <Animated.View
       entering={FadeIn.duration(400).delay(100)}
-      layout={Layout.springify().damping(15).stiffness(150)}
+
       style={[styles.card, styles.shadowLight, isDark && styles.shadowDark]}>
       {isAdding ? (
         <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)}>

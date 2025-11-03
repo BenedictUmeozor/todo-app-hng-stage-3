@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import ReorderableList from "react-native-reorderable-list";
 import { AnimatedTodoRow } from "./animated-todo-row";
 
@@ -52,7 +52,7 @@ export function TodoList({
     const showSeparator = index < todos.length - 1;
 
     return (
-      <Animated.View layout={Layout.springify().damping(15).stiffness(150)}>
+      <Animated.View>
         <AnimatedTodoRow
           text={item.text}
           completed={item.completed}
@@ -75,7 +75,6 @@ export function TodoList({
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
-      layout={Layout.springify().damping(15).stiffness(150)}
       style={[styles.listCard, styles.shadowLight, isDark && styles.shadowDark]}>
       {isLoading ? (
         <EmptyState
@@ -111,7 +110,6 @@ export function TodoList({
           ListFooterComponent={
             <Animated.View
               entering={FadeIn.duration(300)}
-              layout={Layout.springify().damping(15).stiffness(150)}
               style={styles.footerRow}>
               <Text style={[styles.footerText, { color: colors.placeholder }]}>
                 {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left

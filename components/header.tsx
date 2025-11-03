@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-import Animated, { FadeIn, Layout } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 type HeaderProps = {
   isDark: boolean;
@@ -11,7 +11,7 @@ export function Header({ isDark, onToggleTheme }: HeaderProps) {
   return (
     <Animated.View
       entering={FadeIn.duration(400)}
-      layout={Layout.springify().damping(15).stiffness(150)}
+
       style={styles.headerRow}>
       <Text style={styles.logo}>TODO</Text>
       <TouchableOpacity
