@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import Animated, { FadeIn, Layout } from "react-native-reanimated";
 
 type HeaderProps = {
   isDark: boolean;
@@ -8,7 +9,10 @@ type HeaderProps = {
 
 export function Header({ isDark, onToggleTheme }: HeaderProps) {
   return (
-    <View style={styles.headerRow}>
+    <Animated.View
+      entering={FadeIn.duration(400)}
+      layout={Layout.springify().damping(15).stiffness(150)}
+      style={styles.headerRow}>
       <Text style={styles.logo}>TODO</Text>
       <TouchableOpacity
         accessibilityRole="button"
@@ -17,7 +21,7 @@ export function Header({ isDark, onToggleTheme }: HeaderProps) {
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
         <Ionicons name={isDark ? "sunny" : "moon"} size={20} color="#FFFFFF" />
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 

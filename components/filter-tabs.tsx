@@ -1,4 +1,5 @@
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity } from "react-native";
+import Animated, { FadeIn, Layout } from "react-native-reanimated";
 
 type FilterTabsProps = {
   filter: "all" | "active" | "completed";
@@ -9,7 +10,10 @@ type FilterTabsProps = {
 
 export function FilterTabs({ filter, onFilterChange, colors, isDark }: FilterTabsProps) {
   return (
-    <View style={[styles.filtersCard, styles.shadowLight, isDark && styles.shadowDark]}>
+    <Animated.View
+      entering={FadeIn.duration(400).delay(200)}
+      layout={Layout.springify().damping(15).stiffness(150)}
+      style={[styles.filtersCard, styles.shadowLight, isDark && styles.shadowDark]}>
       <TouchableOpacity onPress={() => onFilterChange("all")}>
         <Text
           style={[
@@ -37,7 +41,7 @@ export function FilterTabs({ filter, onFilterChange, colors, isDark }: FilterTab
           Completed
         </Text>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 

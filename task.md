@@ -28,7 +28,7 @@ Smooth transition animations
 Persist theme preference across app restarts
 Theme affects all UI elements (backgrounds, text, buttons, etc.)
 :white_check_mark: Todo CRUD Operations (Using Convex)
-Create: Add todos (title, description, due date)
+Create: Add todos
 Read: Fetch and display todos in real-time
 Update: Edit todos or toggle complete/incomplete
 Delete: Remove todos (swipe-to-delete or buttons)
@@ -43,7 +43,7 @@ Full CRUD functionality (real-time via Convex)
 Proper error handling for network & validation
 Responsive on all screen sizes
 Clean, modular code structure
-Accessibility compliance (contrast, screen reader support)
+Accessibility compliance (screen reader support)
 Ensure the app builds and runs successfully
 README.md — include:
 Setup instructions

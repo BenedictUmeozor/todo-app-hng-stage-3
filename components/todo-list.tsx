@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
 import ReorderableList from "react-native-reorderable-list";
-import { TodoRow } from "./todo-row";
+import { AnimatedTodoRow } from "./animated-todo-row";
 
 type Todo = {
   _id: string;
@@ -51,8 +52,8 @@ export function TodoList({
     const showSeparator = index < todos.length - 1;
 
     return (
-      <View>
-        <TodoRow
+      <Animated.View layout={Layout.springify().damping(15).stiffness(150)}>
+        <AnimatedTodoRow
           text={item.text}
           completed={item.completed}
           colors={colors}
@@ -67,12 +68,15 @@ export function TodoList({
           onCancelEdit={onCancelEdit}
         />
         {showSeparator && <Separator color={colors.sep} />}
-      </View>
+      </Animated.View>
     );
   };
 
   return (
-    <View style={[styles.listCard, styles.shadowLight, isDark && styles.shadowDark]}>
+    <Animated.View
+      entering={FadeIn.duration(400)}
+      layout={Layout.springify().damping(15).stiffness(150)}
+      style={[styles.listCard, styles.shadowLight, isDark && styles.shadowDark]}>
       {isLoading ? (
         <EmptyState
           icon="hourglass-outline"
@@ -105,7 +109,10 @@ export function TodoList({
           onReorder={onReorder}
           scrollEnabled={false}
           ListFooterComponent={
-            <View style={styles.footerRow}>
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              layout={Layout.springify().damping(15).stiffness(150)}
+              style={styles.footerRow}>
               <Text style={[styles.footerText, { color: colors.placeholder }]}>
                 {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left
               </Text>
@@ -114,11 +121,11 @@ export function TodoList({
                   Clear Completed
                 </Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           }
         />
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -128,10 +135,13 @@ function Separator({ color }: { color: string }) {
 
 function EmptyState({ icon, text, color }: { icon: any; text: string; color: string }) {
   return (
-    <View style={styles.emptyState}>
+    <Animated.View
+      entering={FadeIn.duration(400).delay(100)}
+      exiting={FadeOut.duration(200)}
+      style={styles.emptyState}>
       <Ionicons name={icon} size={48} color={color} />
       <Text style={[styles.emptyText, { color }]}>{text}</Text>
-    </View>
+    </Animated.View>
   );
 }
 

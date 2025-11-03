@@ -8,8 +8,9 @@ import { useTodos } from "@/hooks/use-todos";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type ThemeMode = "light" | "dark";
@@ -129,9 +130,11 @@ export default function HomeScreen() {
               isDark={isDark}
             />
 
-            <Text style={[styles.hint, { color: colors.hint }]}>
+            <Animated.Text
+              entering={FadeIn.duration(400).delay(300)}
+              style={[styles.hint, { color: colors.hint }]}>
               Long press and drag to reorder list
-            </Text>
+            </Animated.Text>
           </ScrollView>
         </SafeAreaView>
       </View>
