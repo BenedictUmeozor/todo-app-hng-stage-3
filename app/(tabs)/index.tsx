@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
@@ -51,7 +52,10 @@ export default function HomeScreen() {
       };
 
   // Convex hooks
-  const todos = useQuery(api.todos.get) ?? [];
+  const todos = useQuery(api.todos.get);
+  const isLoading = todos === undefined;
+  const todosList = todos ?? [];
+  
   const addTodoMutation = useMutation(api.todos.add);
   const toggleTodoMutation = useMutation(api.todos.toggle);
   const updateTodoMutation = useMutation(api.todos.update);
@@ -65,15 +69,19 @@ export default function HomeScreen() {
   );
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editText, setEditText] = React.useState("");
+  const [isAdding, setIsAdding] = React.useState(false);
 
   const addTodo = async () => {
     const value = text.trim();
-    if (!value) return;
+    if (!value || isAdding) return;
+    setIsAdding(true);
     try {
       await addTodoMutation({ text: value });
       setText("");
     } catch (error) {
       console.error("Failed to add todo:", error);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -116,18 +124,18 @@ export default function HomeScreen() {
     }
   };
 
-  const itemsLeft = todos.filter(t => !t.completed).length;
+  const itemsLeft = todosList.filter(t => !t.completed).length;
 
   const filteredTodos = React.useMemo(() => {
     switch (filter) {
       case "active":
-        return todos.filter(t => !t.completed);
+        return todosList.filter(t => !t.completed);
       case "completed":
-        return todos.filter(t => t.completed);
+        return todosList.filter(t => t.completed);
       default:
-        return todos;
+        return todosList;
     }
-  }, [filter, todos]);
+  }, [filter, todosList]);
 
   const clearCompleted = async () => {
     try {
@@ -153,7 +161,7 @@ export default function HomeScreen() {
     }
   };
 
-  const renderItem = ({ item, index }: { item: typeof todos[0]; index: number }) => {
+  const renderItem = ({ item, index }: { item: typeof todosList[0]; index: number }) => {
     const isEditing = editingId === item._id;
     const showSeparator = index < filteredTodos.length - 1;
 
@@ -221,7 +229,11 @@ export default function HomeScreen() {
               styles.shadowLight,
               isDark && styles.shadowDark,
             ]}>
-            <View style={[styles.circle, { borderColor: colors.sep }]} />
+            {isAdding ? (
+              <ActivityIndicator size="small" color={colors.placeholder} />
+            ) : (
+              <View style={[styles.circle, { borderColor: colors.sep }]} />
+            )}
             <TextInput
               value={text}
               onChangeText={setText}
@@ -230,6 +242,7 @@ export default function HomeScreen() {
               onSubmitEditing={addTodo}
               returnKeyType="done"
               keyboardAppearance={isDark ? "dark" : "light"}
+              editable={!isAdding}
               style={[styles.input, { color: isDark ? "#ECEDEE" : "#11181C" }]}
             />
           </View>
@@ -241,26 +254,60 @@ export default function HomeScreen() {
               styles.shadowLight,
               isDark && styles.shadowDark,
             ]}>
-            <ReorderableList
-              data={filteredTodos}
-              renderItem={renderItem}
-              keyExtractor={(item) => item._id}
-              onReorder={handleReorder}
-              scrollEnabled={false}
-              ListFooterComponent={
-                <View style={styles.footerRow}>
-                  <Text style={[styles.footerText, { color: colors.placeholder }]}>
-                    {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left
-                  </Text>
-                  <TouchableOpacity onPress={clearCompleted}>
-                    <Text
-                      style={[styles.footerText, { color: colors.placeholder }]}>
-                      Clear Completed
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <Ionicons 
+                  name="hourglass-outline" 
+                  size={48} 
+                  color={colors.placeholder} 
+                />
+                <Text style={[styles.emptyText, { color: colors.placeholder }]}>
+                  Loading your todos...
+                </Text>
+              </View>
+            ) : filteredTodos.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons 
+                  name={
+                    filter === "completed" 
+                      ? "checkmark-done-circle-outline"
+                      : filter === "active"
+                      ? "list-outline"
+                      : "happy-outline"
+                  } 
+                  size={48} 
+                  color={colors.placeholder} 
+                />
+                <Text style={[styles.emptyText, { color: colors.placeholder }]}>
+                  {filter === "completed" 
+                    ? "No completed todos yet"
+                    : filter === "active"
+                    ? "No active todos"
+                    : "No todos yet. Add one above!"}
+                </Text>
+              </View>
+            ) : (
+              <ReorderableList
+                data={filteredTodos}
+                renderItem={renderItem}
+                keyExtractor={(item) => item._id}
+                onReorder={handleReorder}
+                scrollEnabled={false}
+                ListFooterComponent={
+                  <View style={styles.footerRow}>
+                    <Text style={[styles.footerText, { color: colors.placeholder }]}>
+                      {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left
                     </Text>
-                  </TouchableOpacity>
-                </View>
-              }
-            />
+                    <TouchableOpacity onPress={clearCompleted}>
+                      <Text
+                        style={[styles.footerText, { color: colors.placeholder }]}>
+                        Clear Completed
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+            )}
           </View>
 
           {/* Filters card */}
@@ -607,5 +654,18 @@ const styles = StyleSheet.create({
     fontFamily: "JosefinSans-Regular",
     fontSize: 14,
     letterSpacing: -0.2,
+  },
+  emptyState: {
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  emptyText: {
+    fontFamily: "JosefinSans-Regular",
+    fontSize: 14,
+    letterSpacing: -0.2,
+    textAlign: "center",
   },
 });
