@@ -46,22 +46,17 @@ export default function HomeScreen() {
         x: "#9495A5",
       };
 
-  const [todos, setTodos] = React.useState<Todo[]>([
-    { id: "1", text: "Complete online JavaScript course", completed: true },
-    { id: "2", text: "Jog around the park 3x", completed: false },
-    { id: "3", text: "10 minutes meditation", completed: false },
-    { id: "4", text: "Read for 1 hour", completed: false },
-    { id: "5", text: "Pick up groceries", completed: false },
-    { id: "6", text: "Complete Todo App on Frontend Mentor", completed: false },
-  ]);
+  const [todos, setTodos] = React.useState<Todo[]>([]);
 
   const [text, setText] = React.useState("");
-  const [filter, setFilter] = React.useState<"all" | "active" | "completed">("all");
+  const [filter, setFilter] = React.useState<"all" | "active" | "completed">(
+    "all"
+  );
 
   const addTodo = () => {
     const value = text.trim();
     if (!value) return;
-    setTodos((prev) => [
+    setTodos(prev => [
       { id: String(Date.now()), text: value, completed: false },
       ...prev,
     ]);
@@ -69,38 +64,45 @@ export default function HomeScreen() {
   };
 
   const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    setTodos(prev =>
+      prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
   };
 
   const deleteTodo = (id: string) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
+    setTodos(prev => prev.filter(t => t.id !== id));
   };
 
-  const itemsLeft = todos.filter((t) => !t.completed).length;
+  const itemsLeft = todos.filter(t => !t.completed).length;
 
   const filteredTodos = React.useMemo(() => {
     switch (filter) {
       case "active":
-        return todos.filter((t) => !t.completed);
+        return todos.filter(t => !t.completed);
       case "completed":
-        return todos.filter((t) => t.completed);
+        return todos.filter(t => t.completed);
       default:
         return todos;
     }
   }, [filter, todos]);
 
-  const clearCompleted = () => setTodos((prev) => prev.filter((t) => !t.completed));
+  const clearCompleted = () => setTodos(prev => prev.filter(t => !t.completed));
 
   return (
     <View
       style={[
         styles.screen,
         { backgroundColor: isDark ? "#171823" : "#FAFAFA" },
-      ]}
-    >
+      ]}>
       <Image source={bgImage} style={styles.headerImage} contentFit="cover" />
+      {/* Header Gradient Overlay */}
+      <LinearGradient
+        colors={["#5596FF", "#AC2DEB"]}
+        start={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 0 }}
+        style={styles.headerGradient}
+        pointerEvents="none"
+      />
       <SafeAreaView>
         <View style={styles.content}>
           {/* Header: TODO + theme toggle */}
@@ -110,8 +112,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Toggle theme"
               onPress={() => setScheme(isDark ? "light" : "dark")}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons
                 name={isDark ? "sunny" : "moon"}
                 size={20}
@@ -127,8 +128,7 @@ export default function HomeScreen() {
               styles.card,
               styles.shadowLight,
               isDark && styles.shadowDark,
-            ]}
-          >
+            ]}>
             <View style={[styles.circle, { borderColor: colors.sep }]} />
             <TextInput
               value={text}
@@ -148,8 +148,7 @@ export default function HomeScreen() {
               styles.listCard,
               styles.shadowLight,
               isDark && styles.shadowDark,
-            ]}
-          >
+            ]}>
             {filteredTodos.map((t, idx) => (
               <View key={t.id}>
                 <Row
@@ -172,7 +171,8 @@ export default function HomeScreen() {
                 {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left
               </Text>
               <TouchableOpacity onPress={clearCompleted}>
-                <Text style={[styles.footerText, { color: colors.placeholder }]}>
+                <Text
+                  style={[styles.footerText, { color: colors.placeholder }]}>
                   Clear Completed
                 </Text>
               </TouchableOpacity>
@@ -185,8 +185,7 @@ export default function HomeScreen() {
               styles.filtersCard,
               styles.shadowLight,
               isDark && styles.shadowDark,
-            ]}
-          >
+            ]}>
             <TouchableOpacity onPress={() => setFilter("all")}>
               <Text
                 style={[
@@ -194,8 +193,7 @@ export default function HomeScreen() {
                   filter === "all"
                     ? styles.filterActive
                     : { color: colors.placeholder },
-                ]}
-              >
+                ]}>
                 All
               </Text>
             </TouchableOpacity>
@@ -206,8 +204,7 @@ export default function HomeScreen() {
                   filter === "active"
                     ? styles.filterActive
                     : { color: colors.placeholder },
-                ]}
-              >
+                ]}>
                 Active
               </Text>
             </TouchableOpacity>
@@ -218,8 +215,7 @@ export default function HomeScreen() {
                   filter === "completed"
                     ? styles.filterActive
                     : { color: colors.placeholder },
-                ]}
-              >
+                ]}>
                 Completed
               </Text>
             </TouchableOpacity>
@@ -260,15 +256,13 @@ function Row({
         accessibilityRole="button"
         accessibilityLabel={completed ? "Mark as active" : "Mark as completed"}
         onPress={onToggle}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
         {completed ? (
           <LinearGradient
-            colors={["#55DDFF", "#C058F3"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.checkbox}
-          >
+            colors={["#5596FF", "#AC2DEB"]}
+            start={{ x: 1, y: 1 }}
+            end={{ x: 0, y: 0 }}
+            style={styles.checkbox}>
             <Ionicons name="checkmark-sharp" size={14} color="#FFFFFF" />
           </LinearGradient>
         ) : (
@@ -285,16 +279,14 @@ function Row({
                 textDecorationLine: "line-through",
               }
             : { color: colors.item },
-        ]}
-      >
+        ]}>
         {text}
       </Text>
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={`Delete ${text}`}
         onPress={onDelete}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
         <Ionicons name="close" size={12} color={colors.x} />
       </TouchableOpacity>
     </View>
@@ -312,6 +304,15 @@ const styles = StyleSheet.create({
     right: 0,
     height: 200,
     width: "100%",
+  },
+  headerGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 200,
+    width: "100%",
+    opacity: 0.6,
   },
   content: {
     paddingHorizontal: 24,
