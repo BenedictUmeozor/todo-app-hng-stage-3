@@ -7,14 +7,14 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  ActivityIndicator,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ReorderableList, { reorderItems, useReorderableDrag } from "react-native-reorderable-list";
@@ -302,7 +302,6 @@ export default function HomeScreen() {
     return (
       <View>
         <TodoRow
-          id={item._id}
           text={item.text}
           completed={item.completed}
           colors={colors}
@@ -502,7 +501,6 @@ function Separator({ color }: { color: string }) {
 }
 
 function TodoRow({
-  id,
   text,
   completed = false,
   colors,
@@ -516,7 +514,6 @@ function TodoRow({
   onSaveEdit,
   onCancelEdit,
 }: {
-  id: string;
   text: string;
   completed?: boolean;
   colors: { item: string; itemCompleted: string; sep: string; x: string };
