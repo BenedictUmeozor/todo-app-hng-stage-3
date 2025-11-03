@@ -1,14 +1,16 @@
+import { useThemeController } from '@/hooks/theme-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ThemeMode = 'light' | 'dark';
 
 export default function HomeScreen() {
   const scheme = (useColorScheme() ?? 'light') as ThemeMode;
+  const { setScheme } = useThemeController();
 
   const isDark = scheme === 'dark';
   const bgImage = isDark
@@ -40,7 +42,23 @@ export default function HomeScreen() {
       <Image source={bgImage} style={styles.headerImage} contentFit="cover" />
       <SafeAreaView>
         <View style={styles.content}>
-          <View style={[styles.spacer, { height: 108 }]} />
+          {/* Header: TODO + theme toggle */}
+          <View style={styles.headerRow}>
+            <Text style={styles.logo}>TODO</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Toggle theme"
+              onPress={() => setScheme(isDark ? 'light' : 'dark')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={isDark ? 'sunny' : 'moon'}
+                size={20}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={[styles.spacer, { height: 48 }]} />
 
           {/* Input Bar */}
           <View style={[styles.card, styles.shadowLight, isDark && styles.shadowDark]}
@@ -165,6 +183,18 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+  },
+  headerRow: {
+    marginTop: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  logo: {
+    color: '#FFFFFF',
+    fontFamily: 'JosefinSans-Bold',
+    fontSize: 20,
+    letterSpacing: 8,
   },
   spacer: {
     width: '100%',
