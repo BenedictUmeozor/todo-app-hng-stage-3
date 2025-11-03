@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 import { AppThemeProvider } from '@/hooks/theme-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -53,6 +54,7 @@ export default function RootLayout() {
           <StatusBar style="auto" />
         </ThemeProvider>
       </AppThemeProvider>
+      <Toast />
     </ConvexProvider>
   );
 }
