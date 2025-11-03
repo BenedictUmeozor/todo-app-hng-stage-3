@@ -7,12 +7,12 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -51,6 +51,7 @@ export default function HomeScreen() {
   const todos = useQuery(api.todos.get) ?? [];
   const addTodoMutation = useMutation(api.todos.add);
   const toggleTodoMutation = useMutation(api.todos.toggle);
+  const updateTodoMutation = useMutation(api.todos.update);
   const deleteTodoMutation = useMutation(api.todos.remove);
   const clearCompletedMutation = useMutation(api.todos.clearCompleted);
 
@@ -58,6 +59,8 @@ export default function HomeScreen() {
   const [filter, setFilter] = React.useState<"all" | "active" | "completed">(
     "all"
   );
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editText, setEditText] = React.useState("");
 
   const addTodo = async () => {
     const value = text.trim();
@@ -83,6 +86,29 @@ export default function HomeScreen() {
       await deleteTodoMutation({ id: id as any });
     } catch (error) {
       console.error("Failed to delete todo:", error);
+    }
+  };
+
+  const startEditing = (id: string, currentText: string) => {
+    setEditingId(id);
+    setEditText(currentText);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditText("");
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    const value = editText.trim();
+    if (!value) return;
+    try {
+      await updateTodoMutation({ id: editingId as any, text: value });
+      setEditingId(null);
+      setEditText("");
+    } catch (error) {
+      console.error("Failed to update todo:", error);
     }
   };
 
@@ -175,8 +201,15 @@ export default function HomeScreen() {
                   text={t.text}
                   completed={t.completed}
                   colors={colors}
+                  isDark={isDark}
+                  isEditing={editingId === t._id}
+                  editText={editText}
+                  onEditTextChange={setEditText}
                   onToggle={() => toggleTodo(t._id)}
                   onDelete={() => deleteTodo(t._id)}
+                  onEdit={() => startEditing(t._id, t.text)}
+                  onSaveEdit={saveEdit}
+                  onCancelEdit={cancelEditing}
                 />
                 {idx < filteredTodos.length - 1 ? (
                   <Separator color={colors.sep} />
@@ -259,16 +292,64 @@ function Row({
   text,
   completed = false,
   colors,
+  isDark,
+  isEditing,
+  editText,
+  onEditTextChange,
   onToggle,
   onDelete,
+  onEdit,
+  onSaveEdit,
+  onCancelEdit,
 }: {
   id: string;
   text: string;
   completed?: boolean;
   colors: { item: string; itemCompleted: string; sep: string; x: string };
+  isDark: boolean;
+  isEditing: boolean;
+  editText: string;
+  onEditTextChange: (text: string) => void;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
+  onSaveEdit: () => void;
+  onCancelEdit: () => void;
 }) {
+  if (isEditing) {
+    return (
+      <View style={styles.row}>
+        <TextInput
+          value={editText}
+          onChangeText={onEditTextChange}
+          autoFocus
+          onSubmitEditing={onSaveEdit}
+          returnKeyType="done"
+          keyboardAppearance={isDark ? "dark" : "light"}
+          style={[
+            styles.itemText,
+            styles.editInput,
+            { color: colors.item, borderColor: colors.sep },
+          ]}
+        />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Save edit"
+          onPress={onSaveEdit}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Ionicons name="checkmark" size={16} color="#3A7CFD" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Cancel edit"
+          onPress={onCancelEdit}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Ionicons name="close" size={12} color={colors.x} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.row}>
       <TouchableOpacity
@@ -288,19 +369,24 @@ function Row({
           <View style={[styles.circle, { borderColor: colors.sep }]} />
         )}
       </TouchableOpacity>
-      <Text
-        numberOfLines={2}
-        style={[
-          styles.itemText,
-          completed
-            ? {
-                color: colors.itemCompleted,
-                textDecorationLine: "line-through",
-              }
-            : { color: colors.item },
-        ]}>
-        {text}
-      </Text>
+      <TouchableOpacity
+        style={{ flex: 1 }}
+        onPress={onEdit}
+        disabled={completed}>
+        <Text
+          numberOfLines={2}
+          style={[
+            styles.itemText,
+            completed
+              ? {
+                  color: colors.itemCompleted,
+                  textDecorationLine: "line-through",
+                }
+              : { color: colors.item },
+          ]}>
+          {text}
+        </Text>
+      </TouchableOpacity>
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={`Delete ${text}`}
@@ -443,6 +529,13 @@ const styles = StyleSheet.create({
     fontFamily: "JosefinSans-Regular",
     fontSize: 12,
     letterSpacing: -0.2,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderRadius: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 8,
   },
   footerRow: {
     flexDirection: "row",

@@ -42,6 +42,27 @@ export const toggle = mutation({
   },
 });
 
+// Mutation to update todo text
+export const update = mutation({
+  args: {
+    id: v.id("todos"),
+    text: v.string(),
+  },
+  handler: async (ctx, { id, text }) => {
+    const trimmedText = text.trim();
+    if (!trimmedText) {
+      throw new Error("Todo text cannot be empty");
+    }
+    const todo = await ctx.db.get(id);
+    if (!todo) {
+      throw new Error("Todo not found");
+    }
+    await ctx.db.patch(id, {
+      text: trimmedText,
+    });
+  },
+});
+
 // Mutation to delete a todo
 export const remove = mutation({
   args: {
