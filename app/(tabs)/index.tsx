@@ -8,17 +8,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import DraggableFlatList, {
-  RenderItemParams,
-  ScaleDecorator,
-} from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ReorderableList, { reorderItems, useReorderableDrag } from "react-native-reorderable-list";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type ThemeMode = "light" | "dark";
@@ -139,10 +137,13 @@ export default function HomeScreen() {
     }
   };
 
-  const handleDragEnd = async (params: { data: typeof todos }) => {
+  const handleReorder = async ({ from, to }: { from: number; to: number }) => {
     try {
+      // Reorder the filtered todos
+      const reordered = reorderItems(filteredTodos, from, to);
+      
       // Update order based on new positions
-      const updates = params.data.map((todo, index) => ({
+      const updates = reordered.map((todo, index) => ({
         id: todo._id as any,
         order: index,
       }));
@@ -152,34 +153,29 @@ export default function HomeScreen() {
     }
   };
 
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<typeof todos[0]>) => {
+  const renderItem = ({ item, index }: { item: typeof todos[0]; index: number }) => {
     const isEditing = editingId === item._id;
-    const idx = filteredTodos.findIndex(t => t._id === item._id);
-    const showSeparator = idx < filteredTodos.length - 1;
+    const showSeparator = index < filteredTodos.length - 1;
 
     return (
-      <ScaleDecorator>
-        <View>
-          <Row
-            id={item._id}
-            text={item.text}
-            completed={item.completed}
-            colors={colors}
-            isDark={isDark}
-            isEditing={isEditing}
-            editText={editText}
-            onEditTextChange={setEditText}
-            onToggle={() => toggleTodo(item._id)}
-            onDelete={() => deleteTodo(item._id)}
-            onEdit={() => startEditing(item._id, item.text)}
-            onSaveEdit={saveEdit}
-            onCancelEdit={cancelEditing}
-            onLongPress={drag}
-            isActive={isActive}
-          />
-          {showSeparator && <Separator color={colors.sep} />}
-        </View>
-      </ScaleDecorator>
+      <View>
+        <TodoRow
+          id={item._id}
+          text={item.text}
+          completed={item.completed}
+          colors={colors}
+          isDark={isDark}
+          isEditing={isEditing}
+          editText={editText}
+          onEditTextChange={setEditText}
+          onToggle={() => toggleTodo(item._id)}
+          onDelete={() => deleteTodo(item._id)}
+          onEdit={() => startEditing(item._id, item.text)}
+          onSaveEdit={saveEdit}
+          onCancelEdit={cancelEditing}
+        />
+        {showSeparator && <Separator color={colors.sep} />}
+      </View>
     );
   };
 
@@ -199,8 +195,8 @@ export default function HomeScreen() {
           style={styles.headerGradient}
           pointerEvents="none"
         />
-        <SafeAreaView>
-        <View style={styles.content}>
+        <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Header: TODO + theme toggle */}
           <View style={styles.headerRow}>
             <Text style={styles.logo}>TODO</Text>
@@ -245,11 +241,12 @@ export default function HomeScreen() {
               styles.shadowLight,
               isDark && styles.shadowDark,
             ]}>
-            <DraggableFlatList
+            <ReorderableList
               data={filteredTodos}
               renderItem={renderItem}
               keyExtractor={(item) => item._id}
-              onDragEnd={handleDragEnd}
+              onReorder={handleReorder}
+              scrollEnabled={false}
               ListFooterComponent={
                 <View style={styles.footerRow}>
                   <Text style={[styles.footerText, { color: colors.placeholder }]}>
@@ -312,7 +309,7 @@ export default function HomeScreen() {
           <Text style={[styles.hint, { color: colors.hint }]}>
             Long press and drag to reorder list
           </Text>
-        </View>
+        </ScrollView>
       </SafeAreaView>
       </View>
     </GestureHandlerRootView>
@@ -323,7 +320,7 @@ function Separator({ color }: { color: string }) {
   return <View style={[styles.separator, { backgroundColor: color }]} />;
 }
 
-function Row({
+function TodoRow({
   id,
   text,
   completed = false,
@@ -337,8 +334,6 @@ function Row({
   onEdit,
   onSaveEdit,
   onCancelEdit,
-  onLongPress,
-  isActive,
 }: {
   id: string;
   text: string;
@@ -353,9 +348,8 @@ function Row({
   onEdit: () => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
-  onLongPress: () => void;
-  isActive: boolean;
 }) {
+  const drag = useReorderableDrag();
   if (isEditing) {
     return (
       <View style={styles.row}>
@@ -391,7 +385,7 @@ function Row({
   }
 
   return (
-    <View style={[styles.row, isActive && styles.rowActive]}>
+    <View style={styles.row}>
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={completed ? "Mark as active" : "Mark as completed"}
@@ -412,7 +406,7 @@ function Row({
       <TouchableOpacity
         style={{ flex: 1 }}
         onPress={onEdit}
-        onLongPress={onLongPress}
+        onLongPress={drag}
         disabled={completed}>
         <Text
           numberOfLines={2}
@@ -492,7 +486,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: "#FFFFFF",
     overflow: "hidden",
-    maxHeight: 400,
   },
   shadowLight: {
     ...Platform.select({
@@ -542,9 +535,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 12,
     backgroundColor: "transparent",
-  },
-  rowActive: {
-    opacity: 0.9,
   },
   separator: {
     height: 1,
