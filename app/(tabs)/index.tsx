@@ -56,6 +56,7 @@ export default function HomeScreen() {
   ]);
 
   const [text, setText] = React.useState("");
+  const [filter, setFilter] = React.useState<"all" | "active" | "completed">("all");
 
   const addTodo = () => {
     const value = text.trim();
@@ -78,6 +79,19 @@ export default function HomeScreen() {
   };
 
   const itemsLeft = todos.filter((t) => !t.completed).length;
+
+  const filteredTodos = React.useMemo(() => {
+    switch (filter) {
+      case "active":
+        return todos.filter((t) => !t.completed);
+      case "completed":
+        return todos.filter((t) => t.completed);
+      default:
+        return todos;
+    }
+  }, [filter, todos]);
+
+  const clearCompleted = () => setTodos((prev) => prev.filter((t) => !t.completed));
 
   return (
     <View
@@ -136,7 +150,7 @@ export default function HomeScreen() {
               isDark && styles.shadowDark,
             ]}
           >
-            {todos.map((t, idx) => (
+            {filteredTodos.map((t, idx) => (
               <View key={t.id}>
                 <Row
                   id={t.id}
@@ -146,7 +160,7 @@ export default function HomeScreen() {
                   onToggle={() => toggleTodo(t.id)}
                   onDelete={() => deleteTodo(t.id)}
                 />
-                {idx < todos.length - 1 ? (
+                {idx < filteredTodos.length - 1 ? (
                   <Separator color={colors.sep} />
                 ) : null}
               </View>
@@ -157,9 +171,11 @@ export default function HomeScreen() {
               <Text style={[styles.footerText, { color: colors.placeholder }]}>
                 {itemsLeft} {itemsLeft === 1 ? "item" : "items"} left
               </Text>
-              <Text style={[styles.footerText, { color: colors.placeholder }]}>
-                Clear Completed
-              </Text>
+              <TouchableOpacity onPress={clearCompleted}>
+                <Text style={[styles.footerText, { color: colors.placeholder }]}>
+                  Clear Completed
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -171,13 +187,42 @@ export default function HomeScreen() {
               isDark && styles.shadowDark,
             ]}
           >
-            <Text style={[styles.filter, styles.filterActive]}>All</Text>
-            <Text style={[styles.filter, { color: colors.placeholder }]}>
-              Active
-            </Text>
-            <Text style={[styles.filter, { color: colors.placeholder }]}>
-              Completed
-            </Text>
+            <TouchableOpacity onPress={() => setFilter("all")}>
+              <Text
+                style={[
+                  styles.filter,
+                  filter === "all"
+                    ? styles.filterActive
+                    : { color: colors.placeholder },
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setFilter("active")}>
+              <Text
+                style={[
+                  styles.filter,
+                  filter === "active"
+                    ? styles.filterActive
+                    : { color: colors.placeholder },
+                ]}
+              >
+                Active
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setFilter("completed")}>
+              <Text
+                style={[
+                  styles.filter,
+                  filter === "completed"
+                    ? styles.filterActive
+                    : { color: colors.placeholder },
+                ]}
+              >
+                Completed
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Hint */}
