@@ -1,11 +1,15 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Query to get all todos
+// Query to get all todos ordered by order field
 export const get = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("todos").order("desc").collect();
+    return await ctx.db
+      .query("todos")
+      .withIndex("by_order")
+      .order("asc")
+      .collect();
   },
 });
 
@@ -19,9 +23,19 @@ export const add = mutation({
     if (!trimmedText) {
       throw new Error("Todo text cannot be empty");
     }
+    
+    // Get the highest order value and add 1
+    const todos = await ctx.db
+      .query("todos")
+      .withIndex("by_order")
+      .order("desc")
+      .take(1);
+    const maxOrder = todos.length > 0 ? todos[0].order : -1;
+    
     await ctx.db.insert("todos", {
       text: trimmedText,
       completed: false,
+      order: maxOrder + 1,
     });
   },
 });
@@ -84,6 +98,25 @@ export const clearCompleted = mutation({
     
     await Promise.all(
       completedTodos.map((todo) => ctx.db.delete(todo._id))
+    );
+  },
+});
+
+// Mutation to reorder todos
+export const reorder = mutation({
+  args: {
+    updates: v.array(
+      v.object({
+        id: v.id("todos"),
+        order: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, { updates }) => {
+    await Promise.all(
+      updates.map(({ id, order }) =>
+        ctx.db.patch(id, { order })
+      )
     );
   },
 });
